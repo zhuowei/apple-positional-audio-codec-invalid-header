@@ -20,7 +20,7 @@ types:
         type: b6
       - id: f4_29
         type: b6
-      - id: f5_180
+      - id: num_channels_180
         type: b8
       - id: f6_12c
         type: b8
@@ -85,7 +85,7 @@ types:
         type: b2
         if: write_fc_f_4c
       - id: f_100
-        type: b4 # varint: <6u, 8u>
+        type: apac_varint_6_8
         if: write_fc_f_4c
       - id: f_50
         type: b2
@@ -96,23 +96,23 @@ types:
       - id: num_hoa_coeffs_f_5c
         type: b7 # varint?
         if: write_num_hoa_coeffs_f_47 == false
-      - id: some_other_thing_hoa_order
-        type: b4 # varint: <6u, 8u>
+      - id: some_other_thing_hoa_order_5c
+        type: apac_varint_6_8
         if: write_num_hoa_coeffs_f_47
       - id: num_subbands_4_sc_count_60
-        type: b4 # varint: <6u, 8u>
+        type: apac_varint_6_8
       - id: fancy_num_coeffs_calc_100
-        type: b2 # variable - this is 3,2...
+        type: b4 #b2 # variable - this is 3,2 for 4 chan... or 0,4 for 16 chan?!
       - id: num_subbands_4_sc
         type: apac_hoa_subband_4_sc
         repeat: expr
-        repeat-expr: num_subbands_4_sc_count_60
+        repeat-expr: num_subbands_4_sc_count_60.value
       - id: f_44
         type: b1
       # these are tied to 100...
       - id: something_after_f44
         type: b1
-        if: f_44 == false
+        if: false # f_44 == false # 16 channel doesn't have?
       # also tied to write_f_42_f_41
       - id: tce_config_count
         type: b5 # varint: <10u, 16>
@@ -120,22 +120,23 @@ types:
         type: b3
         repeat: expr
         repeat-expr: tce_config_count
-      - id: f_78
+      - id: remap_layout_is_zero_78
         type: b1
-      - id: audio_channel_layout_tag_top
+      - id: audio_channel_layout_tag_top # also 78
         type: b16
       - id: audio_channel_layout_tag_bottom
         type: b16
-      - id: f_e0
+      - id: has_remapping_array_e0
         type: b1
         # if true there's a repeat here
+        # num bits = floor(log2f(audio_channel_layout_tag_bottom)+0.001)
 
   apac_hoa_subband_4_sc:
     seq:
       - id: f_90
         type: b4 # varint: <6u, 8u>
       - id: f_a8
-        type: b4 # is it?
+        type: b2 # is it?
         if: _parent.write_num_hoa_coeffs_f_47
       # TODO
 
@@ -169,3 +170,31 @@ types:
     seq:
       - id: dummy
         type: b1
+  apac_varint_6_9:
+    # -webide-representation: '{value:hex}'
+    seq:
+      - id: f0
+        type: b3
+      - id: f1
+        type: b6
+        if: f0 == 0x7
+      - id: f2
+        type: b9
+        if: f1 == 0x3f
+    instances:
+      value:
+        value: "f0"
+  apac_varint_6_8:
+    # -webide-representation: '{value}'
+    seq:
+      - id: f0
+        type: b4
+      - id: f1
+        type: b6
+        if: f0 == 0xf
+      - id: f2
+        type: b8
+        if: f1 == 0x3f
+    instances:
+      value:
+        value: "f0"
