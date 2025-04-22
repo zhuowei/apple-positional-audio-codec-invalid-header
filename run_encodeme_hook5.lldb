@@ -1,10 +1,10 @@
 # hook the serialize function once
 
-b apac::hoa::CodecConfig::GetNumBits
+b apac::hoa::CodecConfig::Serialize
 breakpoint command add
 bt
 print OverrideApac((CodecConfig*)$x0)
-breakpoint enable 5
+#breakpoint enable 5
 DONE
 breakpoint modify --auto-continue true --disable --one-shot true --ignore-count 1 1
 
@@ -44,8 +44,11 @@ print $pc=$lr
 DONE
 breakpoint modify --auto-continue true --disable --one-shot true 4
 
-b apac::ExtensionConfig::Deserialize
-breakpoint modify --disable 5
-
+b PutBits
+breakpoint command add
+print $x1
+print $x2
+DONE
+breakpoint modify --auto-continue true --disable 5
 
 run
