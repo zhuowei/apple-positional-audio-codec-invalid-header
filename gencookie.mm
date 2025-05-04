@@ -13,12 +13,12 @@ struct CodecConfig {
 };
 
 void OverrideApac(CodecConfig* config) {
-  const int numChannels = 100;
+  const int numChannels = 16;
   config->remappingChannelLayout->mChannelLayoutTag =
       kAudioChannelLayoutTag_HOA_ACN_SN3D | numChannels;
-  config->remappingBitSize = (int)(log2f(numChannels) - 0.0001);
+  config->remappingBitSize = ceil(log2f(numChannels) - 0.0001);
   for (int i = 0; i < numChannels; i++) {
-    config->mRemappingArray.push_back(0xff);
+    config->mRemappingArray.push_back(numChannels - 1); // needs to be smaller than numChannels
   }
 }
 
