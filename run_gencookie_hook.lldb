@@ -1,0 +1,10 @@
+# hook the serialize function once
+
+b apac::hoa::CodecConfig::GetNumBits
+breakpoint command add
+bt
+print OverrideApac((CodecConfig*)$x0)
+DONE
+breakpoint modify --auto-continue true --one-shot true 1
+
+run

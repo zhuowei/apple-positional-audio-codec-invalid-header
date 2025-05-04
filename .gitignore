@@ -1,0 +1,6 @@
+encodeme
+gencookie
+*.bin
+*.dSYM
+*.dylib
+output_unmodified_hoa.mp4

@@ -1,38 +1,10 @@
 # hook the serialize function once
 
-b apac::hoa::CodecConfig::GetNumBits
-breakpoint command add
-bt
-print OverrideApac((CodecConfig*)$x0)
-breakpoint enable 5
-DONE
-breakpoint modify --auto-continue true --disable --one-shot true --ignore-count 1 1
-
-
-# AudioFile regenerates the magic cookie every time we change properties
-# so only enable the hook when we're actually about to write the file
-
 b ExtAudioFileDispose
 breakpoint command add
-breakpoint enable 1
-breakpoint enable 3
-breakpoint enable 4
+breakpoint enable 2
 DONE
-breakpoint modify --auto-continue true --one-shot true 2
-
-
-# after generating the magic cookie,
-# the MP4 writing calls AudioFormatGetProperty(kAudioFormatProperty_FormatInfo) with that cookie
-# our invalid cookie fails here, so hook it to not pass a cookie
-
-b AudioFormatGetProperty
-breakpoint command add
-bt
-print $x1=0
-print $x2=0
-DONE
-breakpoint modify --auto-continue true --condition "$x0 == 'fmti'" --disable --one-shot true 3
-
+breakpoint modify --auto-continue true --one-shot true 1
 
 # force a hardcoded creation / modification time in the mp4 header for reproducible builds
 
@@ -42,10 +14,6 @@ bt
 print $d0=0
 print $pc=$lr
 DONE
-breakpoint modify --auto-continue true --disable --one-shot true 4
-
-b apac::ExtensionConfig::Deserialize
-breakpoint modify --disable 5
-
+breakpoint modify --auto-continue true --disable --one-shot true 2
 
 run
