@@ -24,7 +24,7 @@ void OverrideApac(CodecConfig* config) {
 }
 
 int main() {
-  //This is the number of channels
+  //This is the actual number of channels
   uint32_t channelNum = 1;
   AVAudioFormat* formatIn = [[AVAudioFormat alloc] initStandardFormatWithSampleRate:44100
                                                                            channels:channelNum];
