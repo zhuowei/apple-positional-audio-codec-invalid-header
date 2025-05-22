@@ -1,3 +1,33 @@
+Proof-of-concept for the CoreAudio patch (CVE-2025-31200) in [iOS 18.4.1](https://support.apple.com/en-us/122282).
+
+# Update 05/21/2025
+I @noahhw46 (couldn't have done it without this setup @zhouwei) figured it out (writeup coming soon). However, there is still a lot more to understand. I added the first bit of the next steps of my investigation here in order to show exactly what the bug *does*. check-mismatch is another lldb script that can be used with a working poc to show exactly the mismatch that was created between the mRemappingArray and the permutation map in `APACChannelRemapper::Process` (really in `APACHOADecoder::DecodeAPACFrame`).
+
+----
+
+```
+The mRemappingArray is sized based on the lower two bytes of mChannelLayoutTag.
+By creating a mismatch between them, a later stage of processing in APACHOADecoder::DecodeAPACFrame is corrupted.
+When the APACHOADecoder goes to process the APAC frame (permute it according to the channel remapping array), 
+for some reason it uses a permutation map that is the size given here in 
+mChannelLayoutTag, rather than just based on m_totalComponents. 
+```
+
+When you play the `output.mp4` audio file (e.g. with AVAudioPlayer), `APACChannelRemapper::Process` will read then write out of bounds.
+
+You can see the first read out of bounds if you enable Guard Malloc in Xcode:
+
+<img width="1024" alt="Xcode displaying crash in APACChannelRemapper::Process" src="https://github.com/user-attachments/assets/c733936b-2b91-43a2-9047-5651b66ce81d" />
+
+Without Guard Malloc, `APACHOADecoder::DecodeAPACFrame` will later crash with an invalid `memmove`:
+
+<img width="1024" alt="Xcode displaying crash in _platform_memmove" src="https://github.com/user-attachments/assets/9fddfbea-e9a8-4672-acf9-c5b193fefe95" />
+
+----
+
+@zhuowei's Previous README is below:
+
+
 Trying to understand the CoreAudio patch (CVE-2025-31200) in [iOS 18.4.1](https://support.apple.com/en-us/122282).
 
 I haven't figure it out yet.
@@ -26,7 +56,7 @@ APAC is [Apple Positional Audio Codec](https://support.apple.com/en-by/guide/imm
 
 HOA is [Higher-order Ambisonics](https://en.wikipedia.org/wiki/Ambisonics#Higher-order_Ambisonics).
 
-If you look at a ([sample file from ffmpeg issue tracker](https://trac.ffmpeg.org/ticket/11480):
+If you look at a [sample file from ffmpeg issue tracker](https://trac.ffmpeg.org/ticket/11480):
 
 ```
 $ avmediainfo ~/Downloads/clap.MOV 
@@ -65,7 +95,4 @@ The `encodeme.mm` file encodes APAC, and an LLDB script forces extra elements in
 ./build_encodeme.sh
 ./run_encodeme.sh
 ```
-
-# Update 05/21/2025 
-I @noahhw46 (couldn't have done it without this setup @zhouwei) figured it out (writeup coming soon). However, there is still a lot more to understand. I added the first bit of the next steps of my investigation here in order to show exactly what the bug *does*. check-mismatch is another lldb script that can be used with a working poc to show exactly the mismatch that was created between the mRemappingArray and the permutation map in `APACChannelRemapper::Process` (really in `APACHOADecoder::DecodeAPACFrame`).
 
