@@ -1,20 +1,6 @@
 b apac::hoa::CodecConfig::Serialize
 breakpoint command add
-bt
-print OverrideApac((CodecConfig*)$x0)
+print PatchCodecConfig((CodecConfig*)$x0)
 DONE
-breakpoint modify --auto-continue true --disable --one-shot true --ignore-count 1 1
-b ExtAudioFileDispose
-breakpoint command add
-breakpoint enable 1
-breakpoint enable 3
-DONE
-breakpoint modify --auto-continue true --one-shot true 2
-b AudioFormatGetProperty
-breakpoint command add
-bt
-print $x1=0
-print $x2=0
-DONE
-breakpoint modify --auto-continue true --condition "$x0 == 'fmti'" --disable --one-shot true 3
+breakpoint modify --auto-continue true
 run

