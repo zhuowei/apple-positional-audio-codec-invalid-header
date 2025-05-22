@@ -1,0 +1,19 @@
+settings set target.env-vars DYLD_INSERT_LIBRARIES=./interceptor.dylib
+b -n APACChannelRemapper::Process
+breakpoint command add
+#input vector length in bits
+expr uint64_t $in_vec_size = *(uint64_t*)($x1+0x8)-*(uint64_t*)($x1)
+expr uint64_t $num_bytes = $in_vec_size/8
+expr uint64_t $ctrl_vec_len = *(uint64_t*)($x0+0x10)-*(uint64_t*)($x0+0x8)
+#The size of ctrl vec:
+p $ctrl_vec_len
+#The size of in_vec in bytes:
+p $num_bytes
+#All the 'pointers' that will be permuted
+memory read --count `$ctrl_vec_len` --format hex --size 8 -- *(uint64_t*)$x1
+#the value (if any) at the first pointer in ctrl_vec_len 
+expr uint64_t $ptrval = *(uint64_t*)*(uint64_t*)*(uint64_t*)$x1
+p $ptrval
+DONE
+breakpoint modify --auto-continue true 1
+r

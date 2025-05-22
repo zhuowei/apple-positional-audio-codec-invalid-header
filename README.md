@@ -66,3 +66,6 @@ The `encodeme.mm` file encodes APAC, and an LLDB script forces extra elements in
 ./run_encodeme.sh
 ```
 
+# Update 05/21/2025 
+I @noahhw46 (couldn't have done it without this setup @zhouwei) figured it out (writeup coming soon). However, there is still a lot more to understand. I added the first bit of the next steps of my investigation here in order to show exactly what the bug *does*. check-mismatch is another lldb script that can be used with a working poc to show exactly the mismatch that was created between the mRemappingArray and the permutation map in `APACChannelRemapper::Process` (really in `APACHOADecoder::DecodeAPACFrame`).
+
