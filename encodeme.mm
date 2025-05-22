@@ -65,6 +65,8 @@ int main() {
     fprintf(stderr, "error writing audiofile: %x\n", status);
     return 1;
   }
+  
+  //This is actually unnecessary for just the PoC.
   float audioBuffer[44100];
   for (int i = 0; i < 44100; ++i) {
       audioBuffer[i] = 0.5f;
