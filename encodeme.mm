@@ -13,7 +13,8 @@ struct CodecConfig {
 void OverrideApac(CodecConfig* config) {
   //The mRemappingArray is sized based on the lower two bytes of mChannelLayoutTag.
   //By creating a mismatch between them, a later stage of processing in APACHOADecoder::DecodeAPACFrame is corrupted.
-  //When the APACHOADecoder goes to process the APAC frame, for some reason it uses a permutation map that is the size given here in 
+  //When the APACHOADecoder goes to process the APAC frame (permute it according to the channel remapping array), 
+  //for some reason it uses a permutation map that is the size given here in 
   //mChannelLayoutTag, rather than just based on m_totalComponents. 
   config->remappingChannelLayout->mChannelLayoutTag = kAudioChannelLayoutTag_HOA_ACN_SN3D | 0x8;
   
