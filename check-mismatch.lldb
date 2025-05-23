@@ -1,4 +1,3 @@
-settings set target.env-vars DYLD_INSERT_LIBRARIES=./interceptor.dylib
 b -n APACChannelRemapper::Process
 breakpoint command add
 #input vector length in bits
