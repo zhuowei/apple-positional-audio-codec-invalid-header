@@ -1,5 +1,8 @@
 Proof-of-concept for the CoreAudio patch (CVE-2025-31200) in [iOS 18.4.1](https://support.apple.com/en-us/122282).
 
+# Update 05/27/205
+I have been able to push this to a *controlled* if not arbitrary write. The writeup is coming soon. In order to see for yourself though, you'll have to build on a version of macos before the patch: < 15.4.1. You can run play the audio with the check-mismatch lldb hook (using a simple harness that just plays the audio) in order to see the write. It is not a great arbitrary write yet, as I mentioned above for a few reasons - but mainly because I am still not 100% sure at what stage of the decoding pipeline these values from the frame buffer are at when they are remapped. I am stopping here though to work on the writeup if somebody wants to take it up.
+
 # Update 05/21/2025
 I @noahhw46 (couldn't have done it without this setup @zhouwei) figured it out (writeup coming soon). However, there is still a lot more to understand. I added the first bit of the next steps of my investigation here in order to show exactly what the bug *does*. check-mismatch is another lldb script that can be used with a working poc to show exactly the mismatch that was created between the mRemappingArray and the permutation map in `APACChannelRemapper::Process` (really in `APACHOADecoder::DecodeAPACFrame`).
 
@@ -8,9 +11,7 @@ I @noahhw46 (couldn't have done it without this setup @zhouwei) figured it out (
 ```
 The mRemappingArray is sized based on the lower two bytes of mChannelLayoutTag.
 By creating a mismatch between them, a later stage of processing in APACHOADecoder::DecodeAPACFrame is corrupted.
-When the APACHOADecoder goes to process the APAC frame (permute it according to the channel remapping array), 
-for some reason it uses a permutation map that is the size given here in 
-mChannelLayoutTag, rather than just based on m_totalComponents. 
+When the APACHOADecoder goes to process the APAC frame (permute it according to the channel remapping array), it uses the mRemappingArray as the [permutation map](https://stackoverflow.com/a/16501453) to do the well, channel remapping. It seems like the frame data that is being remapped is sized based on mTotalComponenets.
 ```
 
 When you play the `output.mp4` audio file (e.g. with AVAudioPlayer), `APACChannelRemapper::Process` will read then write out of bounds.
