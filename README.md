@@ -11,7 +11,7 @@ I @noahhw46 (couldn't have done it without this setup @zhouwei) figured it out (
 ```
 The mRemappingArray is sized based on the lower two bytes of mChannelLayoutTag.
 By creating a mismatch between them, a later stage of processing in APACHOADecoder::DecodeAPACFrame is corrupted.
-When the APACHOADecoder goes to process the APAC frame (permute it according to the channel remapping array), it uses the mRemappingArray as the [permutation map](https://stackoverflow.com/a/16501453) to do the well, channel remapping. It seems like the frame data that is being remapped is sized based on mTotalComponenets.
+When the APACHOADecoder goes to process the APAC frame (permute it according to the channel remapping array), it uses the mRemappingArray as the permutation map to do the well, channel remapping. It seems like the frame data that is being remapped is sized based on mTotalComponenets.
 ```
 
 When you play the `output.mp4` audio file (e.g. with AVAudioPlayer), `APACChannelRemapper::Process` will read then write out of bounds.
